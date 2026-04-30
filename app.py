@@ -16,6 +16,8 @@ st.set_page_config(page_title="Glaucoma Detection", layout="wide")
 @st.cache_resource
 def get_models():
     unet_path = MODEL_DIR / "unet_finetuned.h5"
+    if not unet_path.exists():
+        unet_path = MODEL_DIR / "unet_finetuned_fold_1.h5"
     cnn_path = MODEL_DIR / "cnn_classifier.h5"
     if not unet_path.exists() or not cnn_path.exists():
         return None, None

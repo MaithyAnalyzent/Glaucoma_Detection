@@ -10,12 +10,18 @@ from src.preprocess import read_image
 from src.utils import CLASS_NAMES, MODEL_DIR, SEGMENTED_DIR, ensure_dirs, image_extensions
 
 
-def load_unet(path=MODEL_DIR / "unet_finetuned.h5"):
-    return load_model(path, custom_objects={"dice_score": dice_score, "iou": iou})
+def load_unet(path=MODEL_DIR / "unet_finetuned_fold_1.h5"):
+    from tensorflow.keras.optimizers import Adam
+    model = load_model(path, custom_objects={"dice_score": dice_score, "iou": iou})
+    model.compile(optimizer=Adam(), loss="binary_crossentropy", metrics=[dice_score, iou])
+    return model
 
 
 def load_classifier(path=MODEL_DIR / "cnn_classifier.h5"):
-    return load_model(path)
+    from tensorflow.keras.optimizers import Adam
+    model = load_model(path)
+    model.compile(optimizer=Adam(), loss="categorical_crossentropy", metrics=["accuracy"])
+    return model
 
 
 def segment_image(image_path, unet_model, threshold=0.5):
@@ -87,7 +93,7 @@ def predict_image(image_path, unet_model=None, classifier_model=None):
 def main():
     parser = argparse.ArgumentParser(description="Segment and classify one retinal image")
     parser.add_argument("image_path")
-    parser.add_argument("--unet-model", default=str(MODEL_DIR / "unet_finetuned.h5"))
+    parser.add_argument("--unet-model", default=str(MODEL_DIR / "unet_finetuned_fold_1.h5"))
     parser.add_argument("--cnn-model", default=str(MODEL_DIR / "cnn_classifier.h5"))
     args = parser.parse_args()
     result = predict_image(

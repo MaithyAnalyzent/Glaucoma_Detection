@@ -51,6 +51,12 @@ def label_from_path(path):
         return 1
     if "normal" in lower or "non-glaucoma" in lower or "nonglaucoma" in lower:
         return 0
+    # BrG dataset filename convention: imG* = Glaucoma, imN* = Normal
+    stem = Path(path).stem.lower()
+    if stem.startswith("img"):
+        return 1
+    if stem.startswith("imn"):
+        return 0
     raise ValueError(
         f"Cannot infer label for {path}. Place files inside Normal/ and Glaucoma/ folders."
     )

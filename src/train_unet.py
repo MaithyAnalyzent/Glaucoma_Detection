@@ -59,6 +59,7 @@ def pretrain_unet(
     learning_rate=1e-5,
     seed=42,
     max_samples=None,
+    initial_epoch=0,
 ):
     ensure_dirs()
     set_seed(seed)
@@ -73,8 +74,17 @@ def pretrain_unet(
     train_seq = SegmentationSequence(train_pairs, batch_size=batch_size, shuffle=True)
     test_seq = SegmentationSequence(test_pairs, batch_size=batch_size, shuffle=False)
 
-    model = TL_unet_model((256, 256, 3))
-    compile_unet(model, learning_rate=learning_rate, metrics=[dice_score, iou])
+    checkpoint_path = MODEL_DIR / "unet_pretrained.h5"
+    if initial_epoch > 0 and checkpoint_path.exists():
+        print(f"Resuming from checkpoint {checkpoint_path} at epoch {initial_epoch}")
+        model = tf.keras.models.load_model(
+            checkpoint_path,
+            custom_objects={"dice_score": dice_score, "iou": iou},
+        )
+        compile_unet(model, learning_rate=learning_rate, metrics=[dice_score, iou])
+    else:
+        model = TL_unet_model((256, 256, 3))
+        compile_unet(model, learning_rate=learning_rate, metrics=[dice_score, iou])
     checkpoint = BestH5ModelSaver(
         MODEL_DIR / "unet_pretrained.h5",
         monitor="val_loss",
@@ -85,6 +95,7 @@ def pretrain_unet(
         train_seq,
         validation_data=test_seq,
         epochs=epochs,
+        initial_epoch=initial_epoch,
         callbacks=[checkpoint],
     )
     save_training_plots(history, "unet_pretrain")
@@ -98,6 +109,7 @@ def main():
     parser.add_argument("--epochs", type=int, default=100)
     parser.add_argument("--batch-size", type=int, default=8)
     parser.add_argument("--max-samples", type=int, default=None)
+    parser.add_argument("--initial-epoch", type=int, default=0)
     args = parser.parse_args()
     pretrain_unet(
         args.image_dir,
@@ -105,6 +117,7 @@ def main():
         args.epochs,
         args.batch_size,
         max_samples=args.max_samples,
+        initial_epoch=args.initial_epoch,
     )
 
 

@@ -225,7 +225,7 @@ Configuration from the report:
 Run:
 
 ```powershell
-py -3.12 -m src.train_unet --image-dir data/processed --mask-dir data/masks --epochs 100 --batch-size 8
+py -3.12 -m src.train_unet --image-dir data/processed --mask-dir data/masks --epochs 20 --batch-size 8
 ```
 
 On CPU-only machines, the script automatically reduces segmentation batch size

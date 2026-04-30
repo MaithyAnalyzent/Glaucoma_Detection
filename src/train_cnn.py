@@ -6,6 +6,7 @@ os.environ.setdefault("TF_ENABLE_ONEDNN_OPTS", "0")
 os.environ.setdefault("TF_CPP_MIN_LOG_LEVEL", "2")
 
 import numpy as np
+import tensorflow as tf
 from sklearn.model_selection import train_test_split
 from tensorflow.keras.utils import Sequence, to_categorical
 
@@ -47,6 +48,7 @@ def train_cnn(
     batch_size=16,
     seed=42,
     max_samples=None,
+    initial_epoch=0,
 ):
     ensure_dirs()
     set_seed(seed)
@@ -64,7 +66,17 @@ def train_cnn(
     val_seq = ClassificationSequence(val, batch_size=batch_size, shuffle=False)
     test_seq = ClassificationSequence(test, batch_size=batch_size, shuffle=False)
 
-    model = build_cnn_classifier()
+    checkpoint_path = MODEL_DIR / "cnn_classifier.h5"
+    if initial_epoch > 0 and checkpoint_path.exists():
+        print(f"Resuming from checkpoint {checkpoint_path} at epoch {initial_epoch}")
+        model = tf.keras.models.load_model(checkpoint_path)
+        model.compile(
+            optimizer=tf.keras.optimizers.Adam(),
+            loss="categorical_crossentropy",
+            metrics=["accuracy"],
+        )
+    else:
+        model = build_cnn_classifier()
     checkpoint = BestH5ModelSaver(
         MODEL_DIR / "cnn_classifier.h5",
         monitor="val_accuracy",
@@ -75,6 +87,7 @@ def train_cnn(
         train_seq,
         validation_data=val_seq,
         epochs=epochs,
+        initial_epoch=initial_epoch,
         callbacks=[checkpoint],
     )
     save_training_plots(history, "cnn_classifier")
@@ -96,8 +109,9 @@ def main():
     parser.add_argument("--epochs", type=int, default=150)
     parser.add_argument("--batch-size", type=int, default=16)
     parser.add_argument("--max-samples", type=int, default=None)
+    parser.add_argument("--initial-epoch", type=int, default=0)
     args = parser.parse_args()
-    train_cnn(Path(args.data_dir), args.epochs, args.batch_size, max_samples=args.max_samples)
+    train_cnn(Path(args.data_dir), args.epochs, args.batch_size, max_samples=args.max_samples, initial_epoch=args.initial_epoch)
 
 
 if __name__ == "__main__":

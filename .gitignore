@@ -1,0 +1,22 @@
+# Model weights (too large for GitHub)
+models/*.h5
+
+# Segmented outputs (generated, not source)
+outputs/segmented/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+.eggs/
+*.egg-info/
+
+# Jupyter checkpoints
+.ipynb_checkpoints/
+
+# Environment
+.env
+*.env
+
+# Kaggle credentials
+kaggle.json
