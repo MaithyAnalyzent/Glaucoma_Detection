@@ -374,6 +374,24 @@ models/unet_finetuned.h5
 models/cnn_classifier.h5
 ```
 
+## App Screenshots
+
+### Home
+
+![Home page](docs/screenshots/home.png)
+
+### Upload Eye Image
+
+![Upload page](docs/screenshots/upload.png)
+
+### Prediction
+
+![Prediction page](docs/screenshots/prediction.png)
+
+### Metrics
+
+![Metrics page](docs/screenshots/metrics.png)
+
 ## 15. Notebook Workflow
 
 Run notebooks in this order:
